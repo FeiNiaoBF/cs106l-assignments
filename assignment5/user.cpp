@@ -59,7 +59,86 @@ void User::set_friend(size_t index, const std::string& name)
   _friends[index] = name;
 }
 
-/** 
+/**
  * STUDENT TODO:
- * The definitions for your custom operators and special member functions will go here!
+ * The definitions for your custom operators and special member functions will
+ * go here!
  */
+
+/**
+ * Inserts the User into the given output stream.
+ * out: "User(name=Alice, friends=[Bob, Charlie])"
+ */
+std::ostream& operator<<(std::ostream& os, const User& user) {
+  os << "User(name=" << user._name << ", friends=[";
+  for (size_t i = 0; i < user._size; ++i) {
+    os << user._friends[i];
+    if (i < user._size - 1) {
+      os << ", ";
+    }
+  }
+  os << "])";
+  return os;
+}
+
+/**
+ * Destructor for the User class.
+ * Deletes the array of friends.
+ */
+User::~User() {
+  delete[] _friends;   // right
+  _friends = nullptr;  // good habits
+  _size = 0;           // not required
+  _capacity = 0;       // not required
+}
+
+/**
+ * Copy constructor for the User class.
+ * Creates a deep copy of the User.
+ * @param user The User to copy.
+ */
+User::User(const User& user)
+    : _name(user._name),
+      _friends(new std::string[user._capacity]),
+      _size(user._size),
+      _capacity(user._capacity) {
+  for (size_t i = 0; i < _size; ++i) {
+    _friends[i] = user._friends[i];
+  }
+}
+
+/**
+ * Copy assignment operator for the User class.
+ * Creates a deep copy of the User.
+ */
+User& User::operator=(const User& user) {
+  if (this != &user) {
+    delete[] _friends;  // free the old memory
+    _name = user._name;
+    _size = user._size;
+    _capacity = user._capacity;
+    _friends = new std::string[_capacity];
+    for (size_t i = 0; i < _size; ++i) {
+      _friends[i] = user._friends[i];
+    }
+  }
+  return *this;
+}
+
+/**
+ * Compound assignment operator for the User class.
+ * Adds the other User to this User.
+ * @param other The User to add.
+ */
+User& User::operator+=(User& other) {
+  add_friend(other._name);
+  other.add_friend(_name);
+  return *this;
+}
+
+/**
+ * Less than operator for the User class.
+ * Compares the names of the Users.
+ * @param other The User to compare to.
+ */
+bool User::operator<(const User& other) const { return _name < other._name; }
