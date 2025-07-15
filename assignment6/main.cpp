@@ -9,6 +9,7 @@
 #include <vector>
 
 /** STUDENT_TODO: You will need to include a relevant header file here! */
+#include <optional>
 
 #include "autograder/utils.hpp"
 
@@ -50,12 +51,19 @@ public:
   /**
    * Finds a course in the database with the given title, if it exists.
    * @param course_title The title of the course to find.
-   * @return You will need to figure this out!
+   * @return std::optional<Course> containing the found course, or std::nullopt if not found.
    */
-  FillMeIn find_course(std::string course_title)
-  {
-    /* STUDENT_TODO: Implement this method! You will need to change the return
-     * type. */
+  std::optional<Course> find_course(std::string course_title) {
+    if (course_title.empty()) {
+      return std::nullopt; // No course title provided
+    }
+    auto it = std::find_if(courses.begin(), courses.end(), [&course_title](const Course& course) {
+      return course.title == course_title;
+    });
+    if (it != courses.end()) {
+      return *it; // Course found
+    }
+    return std::nullopt; // Course not found
   }
 
 private:
@@ -66,22 +74,28 @@ int
 main(int argc, char* argv[])
 {
   static_assert(
-    !std::is_same_v<std::invoke_result_t<decltype (&CourseDatabase::find_course), 
-                      CourseDatabase, std::string>,
-                    FillMeIn>,
-    "You must change the return type of CourseDatabase::find_course to "
-    "something other than FillMeIn.");
+      !std::is_same_v<
+          std::invoke_result_t<decltype(&CourseDatabase::find_course), CourseDatabase, std::string>,
+          FillMeIn>,
+      "You must change the return type of CourseDatabase::find_course to "
+      "something other than FillMeIn.");
 
   if (argc == 2) {
     CourseDatabase db("autograder/courses.csv");
-    auto course = db.find_course(argv[1]);
-    
-    /******************************************************** 
+    std::optional<Course> course = db.find_course(argv[1]);
+
+    /********************************************************
     STUDENT_TODO: Populate the output string with the right information to print
     Please pay special attention to the README here
     ********************************************************/
-
-    std::string output = /* STUDENT_TODO */
+    std::string output = course
+      .transform([](const Course& c) -> std::string {
+          return "Found course: " + c.title + "," + c.number_of_units + "," + c.quarter;
+        })
+      .or_else([]() -> std::optional<std::string> {
+          return std::optional<std::string>{"Course not found."};
+        })
+      .value();
 
     /********************************************************
      DO NOT MODIFY ANYTHING BELOW THIS LINE PLEASE
@@ -90,6 +104,6 @@ main(int argc, char* argv[])
     std::cout << output << std::endl;
     return 0;
   }
-  
+
   return run_autograder();
 }
